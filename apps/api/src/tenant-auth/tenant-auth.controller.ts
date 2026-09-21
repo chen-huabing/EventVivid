@@ -10,6 +10,7 @@ export class TenantAuthController {
   @Post('register') register(@Body() body: unknown) { return this.auth.register(body); }
   @Post('password-reset/request') requestPasswordReset(@Body() body: unknown) { return this.auth.requestPasswordReset(body); }
   @Post('password-reset/confirm') confirmPasswordReset(@Body() body: unknown) { return this.auth.confirmPasswordReset(body); }
+  @Post('change-password') @UseGuards(TenantAuthGuard) changePassword(@CurrentTenantUser() user: TenantPrincipal, @Body() body: unknown) { return this.auth.changePassword(user.tenantId, user.id, body); }
   @Get('me') @UseGuards(TenantAuthGuard) me(@CurrentTenantUser() user: TenantPrincipal) { return user; }
   @Get('members') @UseGuards(TenantAuthGuard) members(@CurrentTenantUser() user: TenantPrincipal) { return this.auth.members(user.tenantId); }
   @Get('tenant') @UseGuards(TenantAuthGuard) tenant(@CurrentTenantUser() user: TenantPrincipal) { return this.auth.tenant(user.tenantId); }

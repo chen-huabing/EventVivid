@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS events (
   CHECK (ends_at > starts_at)
 );
 CREATE INDEX IF NOT EXISTS events_tenant_status_idx ON events(tenant_id, status);
+ALTER TABLE events ADD COLUMN IF NOT EXISTS hero_color text NOT NULL DEFAULT '#101828';
+ALTER TABLE events ADD COLUMN IF NOT EXISTS form_background_color text NOT NULL DEFAULT '#f8f7f2';
 ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_form jsonb NOT NULL DEFAULT '[
   {"id":"name","key":"name","label":"姓名","type":"text","required":true,"enabled":true,"system":true,"placeholder":"请输入真实姓名"},
   {"id":"mobile","key":"mobile","label":"手机号","type":"mobile","required":true,"enabled":true,"system":true,"placeholder":"用于接收票券通知"}

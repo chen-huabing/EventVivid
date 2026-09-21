@@ -1,4 +1,4 @@
-const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+const base = import.meta.env.VITE_API_URL ?? `${window.location.protocol}//${window.location.hostname}:3000/api/v1`;
 const contextHeaders = {
   'x-tenant-id': '00000000-0000-4000-8000-000000000001',
   'x-user-id': '00000000-0000-4000-8000-000000000002',

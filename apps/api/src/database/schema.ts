@@ -10,7 +10,7 @@ export interface UserTable {
 }
 export interface PasswordResetCodeTable { id: string; mobile: string; code_hash: string; expires_at: Timestamp; consumed_at: Timestamp | null; created_at: GeneratedTimestamp; }
 export interface EventTable {
-  id: string; tenant_id: string; title: string; slug: string; description: string; venue: string;
+  id: string; tenant_id: string; title: string; slug: string; description: string; venue: string; hero_color: string; form_background_color: string;
   starts_at: Timestamp; ends_at: Timestamp; status: 'draft' | 'published' | 'cancelled' | 'ended';
   registration_form: Generated<unknown>; created_by: string; created_at: GeneratedTimestamp; updated_at: GeneratedTimestamp;
 }

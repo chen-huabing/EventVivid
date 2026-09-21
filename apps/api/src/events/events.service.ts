@@ -13,6 +13,8 @@ export const CreateEventSchema = z.object({
   slug: z.string().trim().regex(/^[a-z0-9-]{3,60}$/).optional(),
   description: z.string().max(5000).default(''),
   venue: z.string().trim().min(2).max(200),
+  heroColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#101828'),
+  formBackgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#f8f7f2'),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
 }).refine((value) => value.endsAt > value.startsAt, { message: '结束时间必须晚于开始时间' });
@@ -29,6 +31,8 @@ const UpdateEventSchema = z.object({
   title: z.string().trim().min(2).max(100),
   description: z.string().max(5000),
   venue: z.string().trim().min(2).max(200),
+  heroColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  formBackgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
 }).refine((value) => value.endsAt > value.startsAt, { message: '结束时间必须晚于开始时间' });
@@ -74,7 +78,7 @@ export class EventsService {
     try {
       return await this.db.insertInto('events').values({
         id: randomUUID(), tenant_id: context.tenantId, created_by: context.userId,
-        title: data.title, slug: data.slug ?? `event-${randomUUID().replace(/-/g, '').slice(0, 16)}`, description: data.description, venue: data.venue,
+        title: data.title, slug: data.slug ?? `event-${randomUUID().replace(/-/g, '').slice(0, 16)}`, description: data.description, venue: data.venue, hero_color: data.heroColor, form_background_color: data.formBackgroundColor,
         starts_at: data.startsAt, ends_at: data.endsAt, status: 'draft',
       }).returningAll().executeTakeFirstOrThrow();
     } catch (error) {
@@ -99,7 +103,7 @@ export class EventsService {
     const current = await this.ownedEvent(context, eventId);
     if (current.status === 'cancelled' || current.status === 'ended') throw new DomainError('当前活动状态不允许编辑');
     const data = UpdateEventSchema.parse(input);
-    return this.db.updateTable('events').set({ title: data.title, description: data.description, venue: data.venue, starts_at: data.startsAt, ends_at: data.endsAt, updated_at: new Date() })
+    return this.db.updateTable('events').set({ title: data.title, description: data.description, venue: data.venue, hero_color: data.heroColor, form_background_color: data.formBackgroundColor, starts_at: data.startsAt, ends_at: data.endsAt, updated_at: new Date() })
       .where('id', '=', eventId).where('tenant_id', '=', context.tenantId).returningAll().executeTakeFirstOrThrow();
   }
 
