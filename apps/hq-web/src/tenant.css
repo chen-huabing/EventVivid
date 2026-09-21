@@ -1,0 +1,23 @@
+.split > .card:first-child { overflow-x: auto; }
+.row-actions { display: flex; gap: 6px; white-space: nowrap; }
+.row-actions button { padding: 7px 10px; }
+.table-empty { padding: 36px; color: #98a2b3; text-align: center; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: #10182899; backdrop-filter: blur(4px); }
+.modal { width: min(520px, 100%); padding: 25px; border-radius: 16px; background: #fff; box-shadow: 0 30px 80px #10182855; }
+.modal-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+.modal-head h2 { margin: 5px 0; font-size: 26px; }
+.close { padding: 0 8px; border: 0; color: #667085; font-size: 26px; }
+.modal form { display: grid; gap: 17px; }
+.modal form > label { display: grid; gap: 8px; font-size: 12px; font-weight: 700; }
+.modal form > label small { color: #667085; font-weight: 400; }
+.quick-expiry { display: flex; gap: 8px; }
+.tenant-summary { display: grid; grid-template-columns: 80px 1fr; gap: 9px; padding: 14px; border-radius: 9px; background: #f6f7f9; font-size: 11px; }
+.tenant-summary span { color: #667085; }
+.tenant-summary code { overflow: hidden; text-overflow: ellipsis; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 5px; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+
+@media (max-width: 650px) {
+  .quick-expiry { flex-wrap: wrap; }
+  .modal { padding: 20px; }
+}

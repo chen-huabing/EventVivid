@@ -1,0 +1,23 @@
+{
+  "name": "eventvivid",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @eventvivid/api",
+    "dev:api": "npm run dev --workspace @eventvivid/api",
+    "dev:web": "npm run dev --workspace @eventvivid/web",
+    "dev:organizer": "npm run dev --workspace @eventvivid/organizer-web",
+    "dev:hq": "npm run dev --workspace @eventvivid/hq-web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:create": "npm run db:create --workspace @eventvivid/api",
+    "db:seed-hq": "npm run db:seed-hq --workspace @eventvivid/api",
+    "db:seed-tenant": "npm run db:seed-tenant --workspace @eventvivid/api",
+    "db:migrate": "npm run db:migrate --workspace @eventvivid/api"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
