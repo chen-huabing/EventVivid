@@ -4,6 +4,89 @@
   background: #fff8f6;
 }
 
+.login-form .auth-switch {
+  justify-self: center;
+  border: 0;
+  padding: 2px 4px;
+  background: transparent;
+  color: #185c43;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.login-form .auth-switch:hover {
+  text-decoration: underline;
+}
+
+.login-form .auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.permission-grid {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 13px;
+  border: 1px solid #dce3df;
+  border-radius: 9px;
+}
+
+.permission-grid legend {
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.permission-grid > small {
+  color: #718078;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.permission-grid label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.permission-grid input {
+  width: 16px;
+  height: 16px;
+}
+
+.member-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.member-actions button {
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.form-hint {
+  margin: -4px 0 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f2f7f4;
+  color: #526159;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.date-time-field {
+  display: block;
+  width: 100%;
+}
+
+.date-time-field input {
+  cursor: pointer;
+}
+
 .ticket-list footer {
   display: flex;
   align-items: center;
@@ -163,7 +246,9 @@
 .event-profile dl > div {
   display: grid;
   grid-template-columns: 120px 1fr;
+  align-items: center;
   gap: 18px;
+  min-height: 76px;
   padding: 15px 0;
   border-top: 1px solid #e8ece9;
 }
@@ -171,6 +256,7 @@
 .event-profile dt {
   color: #718078;
   font-size: 12px;
+  line-height: 1.5;
 }
 
 .event-profile dd {
@@ -283,6 +369,71 @@
 .badge.status-danger {
   background: #fff0ec;
   color: #b42318;
+}
+
+/* Data tables are read for extended periods; keep their text comfortably legible. */
+table {
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 17px 20px;
+}
+
+th {
+  font-size: 13px;
+  letter-spacing: .02em;
+}
+
+td {
+  line-height: 1.5;
+}
+
+table .badge {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+table td small {
+  font-size: 12px;
+}
+
+.toolbar > input {
+  font-size: 15px;
+}
+
+.event-cover {
+  align-items: flex-start;
+}
+
+.event-cover .badge {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border: 1px solid rgb(255 255 255 / 28%);
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+.event-cover .badge.draft {
+  border-color: #d9e6df;
+  background: #edf3ef;
+  color: #315547;
+}
+
+.event-cover .badge.published {
+  border-color: #c9edce;
+  background: #e7f8e7;
+  color: #246d2d;
+}
+
+.event-cover .badge.ended,
+.event-cover .badge.cancelled {
+  border-color: #d7dfdb;
+  background: #eef2ef;
+  color: #526159;
 }
 
 .form-builder-head {

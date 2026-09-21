@@ -11,14 +11,22 @@ CREATE TABLE IF NOT EXISTS tenants (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS valid_until timestamptz;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS support_contact text NOT NULL DEFAULT '';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS timezone text NOT NULL DEFAULT 'Asia/Shanghai';
 CREATE TABLE IF NOT EXISTS users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES tenants(id),
   name text NOT NULL, mobile text, role text NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS password_reset_codes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), mobile text NOT NULL, code_hash text NOT NULL,
+  expires_at timestamptz NOT NULL, consumed_at timestamptz, created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS password_reset_codes_mobile_idx ON password_reset_codes(mobile, created_at DESC);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS username text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'active';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at timestamptz;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS permissions jsonb NOT NULL DEFAULT '[]'::jsonb;
 CREATE UNIQUE INDEX IF NOT EXISTS users_username_unique_idx ON users(username) WHERE username IS NOT NULL;
 CREATE TABLE IF NOT EXISTS events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES tenants(id),
@@ -31,9 +39,21 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE INDEX IF NOT EXISTS events_tenant_status_idx ON events(tenant_id, status);
 ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_form jsonb NOT NULL DEFAULT '[
   {"id":"name","key":"name","label":"姓名","type":"text","required":true,"enabled":true,"system":true,"placeholder":"请输入真实姓名"},
-  {"id":"mobile","key":"mobile","label":"手机号","type":"mobile","required":true,"enabled":true,"system":true,"placeholder":"用于接收票券通知"},
-  {"id":"email","key":"email","label":"邮箱","type":"email","required":false,"enabled":true,"system":true,"placeholder":"选填"}
+  {"id":"mobile","key":"mobile","label":"手机号","type":"mobile","required":true,"enabled":true,"system":true,"placeholder":"用于接收票券通知"}
 ]'::jsonb;
+-- 更新列默认值，使新建活动不再包含邮箱字段
+ALTER TABLE events ALTER COLUMN registration_form SET DEFAULT '[
+  {"id":"name","key":"name","label":"姓名","type":"text","required":true,"enabled":true,"system":true,"placeholder":"请输入真实姓名"},
+  {"id":"mobile","key":"mobile","label":"手机号","type":"mobile","required":true,"enabled":true,"system":true,"placeholder":"用于接收票券通知"}
+]'::jsonb;
+-- 修复已有活动中使用旧默认值的记录：去掉邮箱字段（仅自动移除默认邮箱，保留自定义配置）
+UPDATE events SET registration_form = (
+  SELECT jsonb_agg(field ORDER BY ordinality)
+  FROM jsonb_array_elements(registration_form) WITH ORDINALITY AS t(field, ordinality)
+  WHERE field->>'key' != 'email'
+)
+WHERE registration_form IS NOT NULL
+  AND EXISTS (SELECT 1 FROM jsonb_array_elements(registration_form) AS field WHERE field->>'key' = 'email' AND field->>'system' = 'true');
 CREATE TABLE IF NOT EXISTS ticket_types (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES tenants(id), event_id uuid NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   name text NOT NULL, price_cents integer NOT NULL CHECK (price_cents >= 0), capacity integer NOT NULL CHECK (capacity > 0),

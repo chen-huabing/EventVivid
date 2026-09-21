@@ -10,6 +10,9 @@
 .modal form { display: grid; gap: 17px; }
 .modal form > label { display: grid; gap: 8px; font-size: 12px; font-weight: 700; }
 .modal form > label small { color: #667085; font-weight: 400; }
+.form-section { display: grid; gap: 4px; padding: 13px 14px; border-left: 3px solid #5567ff; border-radius: 7px; background: #f4f6ff; }
+.form-section b { font-size: 13px; color: #27359b; }
+.form-section small { color: #667085; font-size: 12px; line-height: 1.5; }
 .quick-expiry { display: flex; gap: 8px; }
 .tenant-summary { display: grid; grid-template-columns: 80px 1fr; gap: 9px; padding: 14px; border-radius: 9px; background: #f6f7f9; font-size: 11px; }
 .tenant-summary span { color: #667085; }

@@ -10,7 +10,12 @@ import { DomainError } from '../shared/domain-error.filter';
 import type { HqPrincipal } from './hq-auth.guard';
 
 const LoginSchema = z.object({ username: z.string().trim().min(1), password: z.string().min(8) });
-const TenantSchema = z.object({ name: z.string().trim().min(2).max(100) });
+const TenantSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  adminName: z.string().trim().min(2).max(50),
+  adminUsername: z.string().trim().min(3).max(50).regex(/^[a-zA-Z0-9_.-]+$/, '管理员账号只能包含字母、数字、点、下划线或连字符'),
+  adminPassword: z.string().min(8).max(128),
+});
 const TenantStatusSchema = z.object({ status: z.enum(['active', 'suspended']) });
 const TenantUpdateSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -54,12 +59,21 @@ export class HqService {
   }
 
   async createTenant(actor: HqPrincipal, input: unknown, ipAddress: string | null) {
-    const data = TenantSchema.parse(input); const id = randomUUID();
-    return this.db.transaction().execute(async (trx) => {
-      const tenant = await trx.insertInto('tenants').values({ id, name: data.name, status: 'active', valid_until: null }).returningAll().executeTakeFirstOrThrow();
-      await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'tenant.create', target_type: 'tenant', target_id: id, detail: { name: data.name }, ip_address: ipAddress }).execute();
-      return tenant;
-    });
+    const data = TenantSchema.parse(input); const id = randomUUID(); const adminId = randomUUID();
+    try {
+      return await this.db.transaction().execute(async (trx) => {
+        const tenant = await trx.insertInto('tenants').values({ id, name: data.name, status: 'active', valid_until: null }).returningAll().executeTakeFirstOrThrow();
+        await trx.insertInto('users').values({
+          id: adminId, tenant_id: id, name: data.adminName, username: data.adminUsername,
+          password_hash: await bcrypt.hash(data.adminPassword, 12), mobile: null, role: 'tenant_admin', status: 'active', last_login_at: null,
+        }).execute();
+        await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'tenant.create', target_type: 'tenant', target_id: id, detail: { name: data.name, adminUsername: data.adminUsername }, ip_address: ipAddress }).execute();
+        return { ...tenant, admin: { name: data.adminName, username: data.adminUsername } };
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === '23505') throw new DomainError('管理员账号已被使用，请更换后重试', HttpStatus.CONFLICT);
+      throw error;
+    }
   }
 
   async updateTenantStatus(actor: HqPrincipal, tenantId: string, input: unknown, ipAddress: string | null) {

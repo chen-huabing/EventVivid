@@ -10,7 +10,7 @@ import { DomainError } from '../shared/domain-error.filter';
 
 export const CreateEventSchema = z.object({
   title: z.string().trim().min(2).max(100),
-  slug: z.string().trim().regex(/^[a-z0-9-]{3,60}$/),
+  slug: z.string().trim().regex(/^[a-z0-9-]{3,60}$/).optional(),
   description: z.string().max(5000).default(''),
   venue: z.string().trim().min(2).max(200),
   startsAt: z.coerce.date(),
@@ -74,7 +74,7 @@ export class EventsService {
     try {
       return await this.db.insertInto('events').values({
         id: randomUUID(), tenant_id: context.tenantId, created_by: context.userId,
-        title: data.title, slug: data.slug, description: data.description, venue: data.venue,
+        title: data.title, slug: data.slug ?? `event-${randomUUID().replace(/-/g, '').slice(0, 16)}`, description: data.description, venue: data.venue,
         starts_at: data.startsAt, ends_at: data.endsAt, status: 'draft',
       }).returningAll().executeTakeFirstOrThrow();
     } catch (error) {

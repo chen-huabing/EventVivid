@@ -3,11 +3,12 @@ import type { ColumnType, Generated } from 'kysely';
 type Timestamp = ColumnType<Date, Date | string, Date | string>;
 type GeneratedTimestamp = ColumnType<Date, Date | string | undefined, Date | string>;
 
-export interface TenantTable { id: string; name: string; status: 'active' | 'suspended'; valid_until: Timestamp | null; created_at: GeneratedTimestamp; }
+export interface TenantTable { id: string; name: string; status: 'active' | 'suspended'; valid_until: Timestamp | null; support_contact: Generated<string>; timezone: Generated<string>; created_at: GeneratedTimestamp; }
 export interface UserTable {
   id: string; tenant_id: string; name: string; username: string | null; password_hash: string | null;
-  mobile: string | null; role: string; status: 'active' | 'disabled'; last_login_at: Timestamp | null; created_at: GeneratedTimestamp;
+  mobile: string | null; role: string; permissions: Generated<unknown>; status: 'active' | 'disabled'; last_login_at: Timestamp | null; created_at: GeneratedTimestamp;
 }
+export interface PasswordResetCodeTable { id: string; mobile: string; code_hash: string; expires_at: Timestamp; consumed_at: Timestamp | null; created_at: GeneratedTimestamp; }
 export interface EventTable {
   id: string; tenant_id: string; title: string; slug: string; description: string; venue: string;
   starts_at: Timestamp; ends_at: Timestamp; status: 'draft' | 'published' | 'cancelled' | 'ended';
@@ -54,7 +55,7 @@ export interface SubscriptionPlanTable {
 }
 
 export interface Database {
-  tenants: TenantTable; users: UserTable; events: EventTable; ticket_types: TicketTypeTable;
+  tenants: TenantTable; users: UserTable; password_reset_codes: PasswordResetCodeTable; events: EventTable; ticket_types: TicketTypeTable;
   registrations: RegistrationTable; orders: OrderTable; tickets: TicketTable; checkin_points: CheckinPointTable;
   checkin_records: CheckinRecordTable; outbox_events: OutboxEventTable; idempotency_keys: IdempotencyKeyTable;
   platform_users: PlatformUserTable; platform_audit_logs: PlatformAuditLogTable; subscription_plans: SubscriptionPlanTable;
