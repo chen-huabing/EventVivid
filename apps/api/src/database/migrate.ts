@@ -88,6 +88,13 @@ CREATE TABLE IF NOT EXISTS checkin_points (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES tenants(id), event_id uuid NOT NULL REFERENCES events(id),
   name text NOT NULL, active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS checkin_point_staff (
+  checkin_point_id uuid NOT NULL REFERENCES checkin_points(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (checkin_point_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS checkin_point_staff_user_idx ON checkin_point_staff(user_id);
 CREATE TABLE IF NOT EXISTS checkin_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES tenants(id), event_id uuid NOT NULL REFERENCES events(id),
   ticket_id uuid NOT NULL REFERENCES tickets(id), checkin_point_id uuid NOT NULL REFERENCES checkin_points(id), operator_id uuid NOT NULL REFERENCES users(id),

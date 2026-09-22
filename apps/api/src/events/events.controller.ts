@@ -11,6 +11,7 @@ export class EventsController {
   @Post() create(@CurrentContext() context: RequestContext, @Body() body: unknown) { return this.events.create(context, body); }
   @Get(':eventId') get(@CurrentContext() context: RequestContext, @Param('eventId') eventId: string) { return this.events.get(context, eventId); }
   @Patch(':eventId') update(@CurrentContext() context: RequestContext, @Param('eventId') eventId: string, @Body() body: unknown) { return this.events.update(context, eventId, body); }
+  @Patch(':eventId/registration-style') updateRegistrationStyle(@CurrentContext() context: RequestContext, @Param('eventId') eventId: string, @Body() body: unknown) { return this.events.updateRegistrationStyle(context, eventId, body); }
   @Get(':eventId/registration-form') registrationForm(@CurrentContext() context: RequestContext, @Param('eventId') eventId: string) { return this.events.registrationForm(context, eventId); }
   @Patch(':eventId/registration-form') updateRegistrationForm(@CurrentContext() context: RequestContext, @Param('eventId') eventId: string, @Body() body: unknown) { return this.events.updateRegistrationForm(context, eventId, body); }
   @Post(':eventId/preview-token') previewToken(@CurrentContext() context: RequestContext, @Param('eventId') eventId: string) { return this.events.createPreviewToken(context, eventId); }

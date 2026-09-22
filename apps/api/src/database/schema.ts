@@ -31,6 +31,7 @@ export interface TicketTable {
   status: 'valid' | 'checked_in' | 'void' | 'refunded'; checked_in_at: Timestamp | null; created_at: GeneratedTimestamp;
 }
 export interface CheckinPointTable { id: string; tenant_id: string; event_id: string; name: string; active: Generated<boolean>; created_at: GeneratedTimestamp; }
+export interface CheckinPointStaffTable { checkin_point_id: string; user_id: string; created_at: GeneratedTimestamp; }
 export interface CheckinRecordTable {
   id: string; tenant_id: string; event_id: string; ticket_id: string; checkin_point_id: string;
   operator_id: string; result: 'success' | 'duplicate' | 'invalid'; created_at: GeneratedTimestamp;
@@ -56,7 +57,7 @@ export interface SubscriptionPlanTable {
 
 export interface Database {
   tenants: TenantTable; users: UserTable; password_reset_codes: PasswordResetCodeTable; events: EventTable; ticket_types: TicketTypeTable;
-  registrations: RegistrationTable; orders: OrderTable; tickets: TicketTable; checkin_points: CheckinPointTable;
+  registrations: RegistrationTable; orders: OrderTable; tickets: TicketTable; checkin_points: CheckinPointTable; checkin_point_staff: CheckinPointStaffTable;
   checkin_records: CheckinRecordTable; outbox_events: OutboxEventTable; idempotency_keys: IdempotencyKeyTable;
   platform_users: PlatformUserTable; platform_audit_logs: PlatformAuditLogTable; subscription_plans: SubscriptionPlanTable;
 }

@@ -1,4 +1,4 @@
-const base = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
+const base = import.meta.env.VITE_API_URL ?? `${window.location.protocol}//${window.location.hostname}:3000/api/v1`;
 export const session = {
   get: () => localStorage.getItem('eventvivid_hq_token'),
   set: (token: string) => localStorage.setItem('eventvivid_hq_token', token),

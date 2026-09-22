@@ -5,10 +5,17 @@ const contextHeaders = {
   'x-role': 'tenant_admin',
 };
 
+export const checkinSession = {
+  get: () => localStorage.getItem('eventvivid_checkin_token'),
+  set: (token: string) => localStorage.setItem('eventvivid_checkin_token', token),
+  clear: () => localStorage.removeItem('eventvivid_checkin_token'),
+};
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = checkinSession.get();
   const response = await fetch(`${base}${path}`, {
     ...init,
-    headers: { ...(init.body ? { 'content-type': 'application/json' } : {}), ...contextHeaders, ...init.headers },
+    headers: { ...(init.body ? { 'content-type': 'application/json' } : {}), ...contextHeaders, ...(token ? { authorization: `Bearer ${token}` } : {}), ...init.headers },
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.message ?? '请求失败');

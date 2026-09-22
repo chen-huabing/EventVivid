@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { RegistrationService } from './registration.service';
 
 @Controller()
@@ -11,4 +11,5 @@ export class RegistrationController {
     return this.registrations.confirmPayment(orderId, key);
   }
   @Get('public/tickets/:code') ticket(@Param('code') code: string) { return this.registrations.ticket(code); }
+  @Get('public/events/:slug/tickets') ticketsByMobile(@Param('slug') slug: string, @Query('mobile') mobile = '') { return this.registrations.ticketsByMobile(slug, mobile); }
 }

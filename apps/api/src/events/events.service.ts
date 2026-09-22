@@ -36,6 +36,10 @@ const UpdateEventSchema = z.object({
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
 }).refine((value) => value.endsAt > value.startsAt, { message: '结束时间必须晚于开始时间' });
+const RegistrationStyleSchema = z.object({
+  heroColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  formBackgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+});
 
 export const RegistrationFieldSchema = z.object({
   id: z.string().trim().min(1).max(80),
@@ -104,6 +108,14 @@ export class EventsService {
     if (current.status === 'cancelled' || current.status === 'ended') throw new DomainError('当前活动状态不允许编辑');
     const data = UpdateEventSchema.parse(input);
     return this.db.updateTable('events').set({ title: data.title, description: data.description, venue: data.venue, hero_color: data.heroColor, form_background_color: data.formBackgroundColor, starts_at: data.startsAt, ends_at: data.endsAt, updated_at: new Date() })
+      .where('id', '=', eventId).where('tenant_id', '=', context.tenantId).returningAll().executeTakeFirstOrThrow();
+  }
+
+  async updateRegistrationStyle(context: RequestContext, eventId: string, input: unknown) {
+    const current = await this.ownedEvent(context, eventId);
+    if (current.status === 'cancelled' || current.status === 'ended') throw new DomainError('当前活动状态不允许修改报名页样式');
+    const data = RegistrationStyleSchema.parse(input);
+    return this.db.updateTable('events').set({ hero_color: data.heroColor, form_background_color: data.formBackgroundColor, updated_at: new Date() })
       .where('id', '=', eventId).where('tenant_id', '=', context.tenantId).returningAll().executeTakeFirstOrThrow();
   }
 

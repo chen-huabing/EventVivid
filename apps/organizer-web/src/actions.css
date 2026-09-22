@@ -571,7 +571,7 @@ table td small {
 
 .preview-phone {
   display: grid;
-  gap: 13px;
+  gap: 0;
   max-width: 330px;
   margin: 20px auto 0;
   padding: 22px;
@@ -579,12 +579,26 @@ table td small {
   border-radius: 25px;
   background: #f8faf8;
   box-shadow: 0 14px 35px #13231d18;
+  overflow: hidden;
 }
 
 .preview-phone h4 {
   margin: 0 0 4px;
   font-size: 17px;
 }
+
+.preview-hero {
+  display: grid;
+  gap: 6px;
+  margin: -22px -22px 0;
+  padding: 22px;
+  min-height: 105px;
+  color: #fff;
+}
+.preview-hero small { opacity: .75; font-size: 9px; letter-spacing: .08em; }
+.preview-hero b { font-size: 18px; line-height: 1.25; }
+.preview-hero span { font-size: 11px; opacity: .85; }
+.preview-form { display: grid; gap: 13px; margin: 0 -22px -22px; padding: 20px 22px 22px; }
 
 .preview-phone label {
   display: grid;

@@ -1,0 +1,7 @@
+.checkin-points{display:grid;gap:11px;margin-top:18px}
+.checkin-point{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:11px;align-items:start;margin-top:0}
+.checkin-point>div:first-child{display:grid;gap:5px}.checkin-point>div:first-child b{font-size:14px}
+.checkin-staff-summary{grid-column:1/-1;display:grid;gap:5px;padding-top:11px;border-top:1px solid #e8ece9;font-size:12px}.checkin-staff-summary>span{color:#718078;line-height:1.5}
+.checkin-point footer{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}.checkin-point footer button{font-size:12px;padding:7px 10px}
+.readiness>.muted{display:block;margin-top:14px;line-height:1.6}.muted{color:#718078;font-size:12px;line-height:1.6}
+.authorization-list{display:grid;gap:8px;margin:14px 0}.authorization-list label{display:flex!important;grid-template-columns:none!important;align-items:center;gap:10px;padding:11px;border:1px solid #e0e5e2;border-radius:8px}.authorization-list input{width:auto}.authorization-list span{display:grid;gap:3px}.authorization-list small{color:#718078;font-weight:400}

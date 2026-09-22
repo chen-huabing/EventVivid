@@ -11,13 +11,7 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true }),
   );
   await app.register(helmet);
-  app.enableCors({
-    origin: [
-      process.env.WEB_ORIGIN ?? 'http://localhost:5173',
-      process.env.HQ_WEB_ORIGIN ?? 'http://localhost:5174',
-      process.env.ATTENDEE_WEB_ORIGIN ?? 'http://localhost:5175',
-    ],
-  });
+  app.enableCors({ origin: true });
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new DomainErrorFilter());
   await app.listen(Number(process.env.PORT ?? 3000), '0.0.0.0');

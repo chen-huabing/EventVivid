@@ -17,7 +17,17 @@
 .tenant-summary { display: grid; grid-template-columns: 80px 1fr; gap: 9px; padding: 14px; border-radius: 9px; background: #f6f7f9; font-size: 11px; }
 .tenant-summary span { color: #667085; }
 .tenant-summary code { overflow: hidden; text-overflow: ellipsis; }
+.tenant-admin-list { display: grid; gap: 8px; padding: 13px; border: 1px solid #e4e7ec; border-radius: 9px; background: #fcfcfd; }
+.tenant-admin-head b { display: block; font-size: 13px; color: #1d2939; }
+.tenant-admin-head small, .tenant-admin-row small, .admin-loading { display: block; margin-top: 3px; color: #667085; font-size: 12px; }
+.admin-error { display: block; margin-top: 3px; color: #b42318; font-size: 12px; }
+.tenant-admin-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0 0; border-top: 1px solid #eaecf0; }
+.tenant-admin-row b { font-size: 13px; color: #344054; }
+.tenant-admin-row button { padding: 7px 11px; font-size: 12px; }
+.tenant-admin-fields { display: grid; gap: 11px; padding-top: 10px; border-top: 1px solid #eaecf0; }
+.tenant-admin-fields label { display: grid; gap: 7px; color: #344054; font-size: 12px; font-weight: 700; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 5px; }
+.modal-edit { padding: 8px 15px; font-size: 13px; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
 @media (max-width: 650px) {

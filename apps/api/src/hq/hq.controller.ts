@@ -19,6 +19,8 @@ export class HqController {
   @Post('tenants') createTenant(@CurrentHqUser() user: HqPrincipal, @Body() body: unknown, @Ip() ip: string) { return this.hq.createTenant(user, body, ip); }
   @Patch('tenants/:tenantId') updateTenant(@CurrentHqUser() user: HqPrincipal, @Param('tenantId') tenantId: string, @Body() body: unknown, @Ip() ip: string) { return this.hq.updateTenant(user, tenantId, body, ip); }
   @Patch('tenants/:tenantId/status') updateTenantStatus(@CurrentHqUser() user: HqPrincipal, @Param('tenantId') tenantId: string, @Body() body: unknown, @Ip() ip: string) { return this.hq.updateTenantStatus(user, tenantId, body, ip); }
+  @Get('tenants/:tenantId/admins') tenantAdmins(@Param('tenantId') tenantId: string) { return this.hq.tenantAdmins(tenantId); }
+  @Patch('tenants/:tenantId/admins/:adminId') updateTenantAdmin(@CurrentHqUser() user: HqPrincipal, @Param('tenantId') tenantId: string, @Param('adminId') adminId: string, @Body() body: unknown, @Ip() ip: string) { return this.hq.updateTenantAdmin(user, tenantId, adminId, body, ip); }
   @Get('plans') plans() { return this.hq.plans(); }
   @Get('audit-logs') auditLogs() { return this.hq.auditLogs(); }
 }

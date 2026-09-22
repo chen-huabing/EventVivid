@@ -13,13 +13,18 @@ const LoginSchema = z.object({ username: z.string().trim().min(1), password: z.s
 const TenantSchema = z.object({
   name: z.string().trim().min(2).max(100),
   adminName: z.string().trim().min(2).max(50),
-  adminUsername: z.string().trim().min(3).max(50).regex(/^[a-zA-Z0-9_.-]+$/, '管理员账号只能包含字母、数字、点、下划线或连字符'),
+  adminMobile: z.string().regex(/^1[3-9]\d{9}$/, '请输入有效的中国大陆手机号'),
   adminPassword: z.string().min(8).max(128),
 });
 const TenantStatusSchema = z.object({ status: z.enum(['active', 'suspended']) });
 const TenantUpdateSchema = z.object({
   name: z.string().trim().min(2).max(100),
   validUntil: z.coerce.date().nullable(),
+});
+const TenantAdminUpdateSchema = z.object({
+  name: z.string().trim().min(2).max(50),
+  mobile: z.string().regex(/^1[3-9]\d{9}$/, '请输入有效的中国大陆手机号'),
+  password: z.string().min(8).max(128).optional().or(z.literal('')),
 });
 
 @Injectable()
@@ -64,11 +69,11 @@ export class HqService {
       return await this.db.transaction().execute(async (trx) => {
         const tenant = await trx.insertInto('tenants').values({ id, name: data.name, status: 'active', valid_until: null }).returningAll().executeTakeFirstOrThrow();
         await trx.insertInto('users').values({
-          id: adminId, tenant_id: id, name: data.adminName, username: data.adminUsername,
-          password_hash: await bcrypt.hash(data.adminPassword, 12), mobile: null, role: 'tenant_admin', status: 'active', last_login_at: null,
+          id: adminId, tenant_id: id, name: data.adminName, username: data.adminMobile,
+          password_hash: await bcrypt.hash(data.adminPassword, 12), mobile: data.adminMobile, role: 'tenant_admin', status: 'active', last_login_at: null,
         }).execute();
-        await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'tenant.create', target_type: 'tenant', target_id: id, detail: { name: data.name, adminUsername: data.adminUsername }, ip_address: ipAddress }).execute();
-        return { ...tenant, admin: { name: data.adminName, username: data.adminUsername } };
+        await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'tenant.create', target_type: 'tenant', target_id: id, detail: { name: data.name, adminMobile: data.adminMobile }, ip_address: ipAddress }).execute();
+        return { ...tenant, admin: { name: data.adminName, mobile: data.adminMobile } };
       });
     } catch (error) {
       if ((error as { code?: string }).code === '23505') throw new DomainError('管理员账号已被使用，请更换后重试', HttpStatus.CONFLICT);
@@ -99,6 +104,28 @@ export class HqService {
       }).execute();
       return tenant;
     });
+  }
+
+  tenantAdmins(tenantId: string) {
+    return this.db.selectFrom('users').select(['id', 'name', 'mobile', 'username', 'status', 'last_login_at', 'created_at'])
+      .where('tenant_id', '=', tenantId).where('role', '=', 'tenant_admin').orderBy('created_at').execute();
+  }
+
+  async updateTenantAdmin(actor: HqPrincipal, tenantId: string, adminId: string, input: unknown, ipAddress: string | null) {
+    const data = TenantAdminUpdateSchema.parse(input);
+    try {
+      return await this.db.transaction().execute(async (trx) => {
+        const before = await trx.selectFrom('users').select(['name', 'mobile']).where('id', '=', adminId).where('tenant_id', '=', tenantId).where('role', '=', 'tenant_admin').executeTakeFirst();
+        if (!before) throw new DomainError('租户管理员不存在', HttpStatus.NOT_FOUND);
+        const admin = await trx.updateTable('users').set({ name: data.name, mobile: data.mobile, username: data.mobile, ...(data.password ? { password_hash: await bcrypt.hash(data.password, 12) } : {}) })
+          .where('id', '=', adminId).where('tenant_id', '=', tenantId).returning(['id', 'name', 'mobile', 'username', 'status', 'last_login_at', 'created_at']).executeTakeFirstOrThrow();
+        await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'tenant.admin.update', target_type: 'tenant_user', target_id: adminId, detail: { tenantId, before: { name: before.name, mobile: before.mobile }, after: { name: data.name, mobile: data.mobile }, passwordReset: Boolean(data.password) }, ip_address: ipAddress }).execute();
+        return admin;
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === '23505') throw new DomainError('该手机号已被其他账号使用', HttpStatus.CONFLICT);
+      throw error;
+    }
   }
 
   plans() { return this.db.selectFrom('subscription_plans').selectAll().orderBy('price_cents').execute(); }

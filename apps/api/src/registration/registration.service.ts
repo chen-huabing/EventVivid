@@ -8,10 +8,11 @@ import { RegistrationFormSchema } from '../events/events.service';
 import { DomainError } from '../shared/domain-error.filter';
 
 const RegisterSchema = z.object({
-  ticketTypeId: z.string().uuid(), attendeeName: z.string().trim().min(2).max(60),
+  ticketTypeId: z.string().uuid(), attendeeName: z.string().trim().min(2, '姓名至少需要输入 2 个字符').max(60, '姓名不能超过 60 个字符'),
   attendeeMobile: z.string().trim().regex(/^1\d{10}$/), attendeeEmail: z.string().email().optional().or(z.literal('')),
   formData: z.record(z.string().max(1000)).default({}),
 });
+const TicketLookupSchema = z.string().trim().regex(/^1\d{10}$/, '请输入报名使用的 11 位手机号');
 
 @Injectable()
 export class RegistrationService {
@@ -84,9 +85,20 @@ export class RegistrationService {
     const result = await this.db.selectFrom('tickets')
       .innerJoin('registrations', 'registrations.id', 'tickets.registration_id')
       .innerJoin('events', 'events.id', 'tickets.event_id')
-      .select(['tickets.code', 'tickets.status', 'tickets.checked_in_at', 'registrations.attendee_name', 'events.title', 'events.venue', 'events.starts_at'])
+      .innerJoin('ticket_types', 'ticket_types.id', 'registrations.ticket_type_id')
+      .select(['tickets.code', 'tickets.status', 'tickets.checked_in_at', 'registrations.attendee_name', 'ticket_types.name as ticket_type_name', 'events.title', 'events.slug', 'events.venue', 'events.starts_at'])
       .where('tickets.code', '=', code).executeTakeFirst();
     if (!result) throw new DomainError('票券不存在', HttpStatus.NOT_FOUND);
     return result;
+  }
+
+  async ticketsByMobile(slug: string, mobile: string) {
+    const attendeeMobile = TicketLookupSchema.parse(mobile);
+    const event = await this.db.selectFrom('events').select(['id', 'title', 'slug']).where('slug', '=', slug).executeTakeFirst();
+    if (!event) throw new DomainError('活动不存在', HttpStatus.NOT_FOUND);
+    return this.db.selectFrom('tickets').innerJoin('registrations', 'registrations.id', 'tickets.registration_id')
+      .innerJoin('ticket_types', 'ticket_types.id', 'registrations.ticket_type_id')
+      .select(['tickets.code', 'tickets.status', 'tickets.checked_in_at', 'registrations.attendee_name', 'ticket_types.name as ticket_type_name', 'tickets.created_at'])
+      .where('tickets.event_id', '=', event.id).where('registrations.attendee_mobile', '=', attendeeMobile).orderBy('tickets.created_at', 'desc').execute();
   }
 }
