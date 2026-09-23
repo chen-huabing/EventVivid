@@ -154,7 +154,8 @@ export class EventsService {
     return this.db.selectFrom('registrations')
       .innerJoin('ticket_types', 'ticket_types.id', 'registrations.ticket_type_id')
       .leftJoin('orders', 'orders.registration_id', 'registrations.id')
-      .select(['registrations.id', 'registrations.attendee_name', 'registrations.attendee_mobile', 'registrations.attendee_email', 'registrations.form_data', 'registrations.status', 'registrations.created_at', 'ticket_types.name as ticket_type_name', 'orders.order_no', 'orders.status as order_status'])
+      .leftJoin('tickets', 'tickets.registration_id', 'registrations.id')
+      .select(['registrations.id', 'registrations.attendee_name', 'registrations.attendee_mobile', 'registrations.attendee_email', 'registrations.form_data', 'registrations.status', 'registrations.created_at', 'ticket_types.name as ticket_type_name', 'orders.order_no', 'orders.amount_cents', 'orders.status as order_status', 'orders.paid_at', 'tickets.code as ticket_code', 'tickets.status as ticket_status', 'tickets.created_at as ticket_issued_at', 'tickets.checked_in_at'])
       .where('registrations.tenant_id', '=', context.tenantId).where('registrations.event_id', '=', eventId).orderBy('registrations.created_at', 'desc').execute();
   }
 
@@ -168,7 +169,8 @@ export class EventsService {
   async issuedTickets(context: RequestContext, eventId: string) {
     await this.ownedEvent(context, eventId);
     return this.db.selectFrom('tickets').innerJoin('registrations', 'registrations.id', 'tickets.registration_id')
-      .select(['tickets.id', 'tickets.code', 'tickets.status', 'tickets.checked_in_at', 'tickets.created_at', 'registrations.attendee_name', 'registrations.attendee_mobile'])
+      .innerJoin('ticket_types', 'ticket_types.id', 'registrations.ticket_type_id')
+      .select(['tickets.id', 'tickets.code', 'tickets.status', 'tickets.checked_in_at', 'tickets.created_at', 'registrations.attendee_name', 'registrations.attendee_mobile', 'ticket_types.name as ticket_type_name'])
       .where('tickets.tenant_id', '=', context.tenantId).where('tickets.event_id', '=', eventId).orderBy('tickets.created_at', 'desc').execute();
   }
 

@@ -716,3 +716,19 @@ table td small {
     grid-column: 2 / -1;
   }
 }
+
+.registration-detail-modal{width:min(680px,100%)}
+.registration-detail-summary{display:grid;gap:12px;margin-top:20px}
+.registration-detail-group{padding:16px 18px;border:1px solid #e5ebe7;border-radius:14px;background:#f8faf8}
+.registration-detail-group h3{margin:0 0 14px;color:#1a3e31;font-size:13px;letter-spacing:.04em}
+.registration-detail-group dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px;margin:0}
+.registration-detail-group dl>div{min-width:0}
+.registration-detail-group dt{margin-bottom:5px;color:#718078;font-size:12px}
+.registration-detail-group dd{margin:0;color:#1b2d25;font-size:14px;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+.registration-detail-group dd .badge{font-size:12px}
+.registration-detail-answers-heading{margin:24px 0 8px;font-size:15px}
+.registration-detail-answers{margin:0}
+.registration-detail-answers>div{display:grid;grid-template-columns:140px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid #e8ece9}
+.registration-detail-answers dt{color:#718078;font-size:12px}
+.registration-detail-answers dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+@media(max-width:540px){.registration-detail-group dl{grid-template-columns:1fr}.registration-detail-answers>div{grid-template-columns:1fr;gap:4px}}
