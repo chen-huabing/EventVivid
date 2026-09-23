@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { DATABASE } from '../database/database.module';
 import type { Database } from '../database/schema';
 import { DomainError } from '../shared/domain-error.filter';
+import { expireCreditHolds } from '../shared/credit-holds';
 
 const LoginSchema = z.object({ username: z.string().trim().min(1), password: z.string().min(8) });
 const RegisterSchema = z.object({
@@ -45,15 +46,15 @@ export class TenantAuthService {
     const data = RegisterSchema.parse(input);
     const tenantId = randomUUID();
     const userId = randomUUID();
-    const trialEndsAt = new Date();
-    trialEndsAt.setMonth(trialEndsAt.getMonth() + 6);
     try {
       await this.db.transaction().execute(async (trx) => {
-        await trx.insertInto('tenants').values({ id: tenantId, name: data.tenantName, status: 'active', valid_until: trialEndsAt }).execute();
+        await trx.insertInto('tenants').values({ id: tenantId, name: data.tenantName, status: 'active', valid_until: null }).execute();
         await trx.insertInto('users').values({
           id: userId, tenant_id: tenantId, name: data.name, username: data.mobile,
           password_hash: await bcrypt.hash(data.password, 12), mobile: data.mobile, role: 'tenant_admin', status: 'active', last_login_at: null,
         }).execute();
+        await trx.insertInto('credit_wallets').values({ tenant_id: tenantId, balance: 100, reserved: 0 }).execute();
+        await trx.insertInto('credit_ledger').values({ id: randomUUID(), tenant_id: tenantId, change: 100, kind: 'grant', reference: 'signup-grant', note: '新租户注册赠送' }).execute();
       });
     } catch (error) {
       if ((error as { code?: string }).code === '23505') throw new DomainError('该手机号已被注册，请直接登录或找回密码', HttpStatus.CONFLICT);
@@ -105,6 +106,13 @@ export class TenantAuthService {
 
   tenant(tenantId: string) {
     return this.db.selectFrom('tenants').select(['id', 'name', 'support_contact', 'timezone', 'valid_until', 'status', 'created_at']).where('id', '=', tenantId).executeTakeFirstOrThrow();
+  }
+
+  async credits(tenantId: string) {
+    await expireCreditHolds(this.db, tenantId);
+    const wallet = await this.db.selectFrom('credit_wallets').selectAll().where('tenant_id', '=', tenantId).executeTakeFirstOrThrow();
+    const entries = await this.db.selectFrom('credit_ledger').selectAll().where('tenant_id', '=', tenantId).orderBy('created_at', 'desc').limit(100).execute();
+    return { balance: wallet.balance, reserved: wallet.reserved, available: wallet.balance - wallet.reserved, entries };
   }
 
   async updateTenant(tenantId: string, actorRole: string, input: unknown) {

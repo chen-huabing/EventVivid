@@ -14,6 +14,7 @@ export class TenantAuthController {
   @Get('me') @UseGuards(TenantAuthGuard) me(@CurrentTenantUser() user: TenantPrincipal) { return user; }
   @Get('members') @UseGuards(TenantAuthGuard) members(@CurrentTenantUser() user: TenantPrincipal) { return this.auth.members(user.tenantId); }
   @Get('tenant') @UseGuards(TenantAuthGuard) tenant(@CurrentTenantUser() user: TenantPrincipal) { return this.auth.tenant(user.tenantId); }
+  @Get('credits') @UseGuards(TenantAuthGuard) credits(@CurrentTenantUser() user: TenantPrincipal) { return this.auth.credits(user.tenantId); }
   @Patch('tenant') @UseGuards(TenantAuthGuard) updateTenant(@CurrentTenantUser() user: TenantPrincipal, @Body() body: unknown) { return this.auth.updateTenant(user.tenantId, user.role, body); }
   @Post('members') @UseGuards(TenantAuthGuard) addMember(@CurrentTenantUser() user: TenantPrincipal, @Body() body: unknown) { return this.auth.addMember(user.tenantId, user.role, body); }
   @Patch('members/:memberId') @UseGuards(TenantAuthGuard) updateMember(@CurrentTenantUser() user: TenantPrincipal, @Param('memberId') memberId: string, @Body() body: unknown) { return this.auth.updateMember(user.tenantId, user.role, user.id, memberId, body); }

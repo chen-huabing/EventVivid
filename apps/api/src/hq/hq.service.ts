@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { DATABASE } from '../database/database.module';
 import type { Database } from '../database/schema';
 import { DomainError } from '../shared/domain-error.filter';
+import { expireCreditHolds } from '../shared/credit-holds';
 import type { HqPrincipal } from './hq-auth.guard';
 
 const LoginSchema = z.object({ username: z.string().trim().min(1), password: z.string().min(8) });
@@ -26,6 +27,7 @@ const TenantAdminUpdateSchema = z.object({
   mobile: z.string().regex(/^1[3-9]\d{9}$/, '请输入有效的中国大陆手机号'),
   password: z.string().min(8).max(128).optional().or(z.literal('')),
 });
+const CreditGrantSchema = z.object({ amount: z.number().int().positive().max(1000000), reason: z.string().trim().min(4).max(200), reference: z.string().uuid() });
 
 @Injectable()
 export class HqService {
@@ -59,7 +61,11 @@ export class HqService {
 
   listTenants() {
     return this.db.selectFrom('tenants').leftJoin('events', 'events.tenant_id', 'tenants.id')
-      .select(['tenants.id', 'tenants.name', 'tenants.status', 'tenants.valid_until', 'tenants.created_at', (eb) => eb.fn.count<number>('events.id').as('event_count')])
+      .leftJoin('credit_wallets', 'credit_wallets.tenant_id', 'tenants.id')
+      .select(['tenants.id', 'tenants.name', 'tenants.status', 'tenants.valid_until', 'tenants.created_at',
+        (eb) => eb.fn.count<number>('events.id').as('event_count'),
+        (eb) => eb.fn.max<number>('credit_wallets.balance').as('credit_balance'),
+        (eb) => eb.fn.max<number>('credit_wallets.reserved').as('credit_reserved')])
       .groupBy('tenants.id').orderBy('tenants.created_at', 'desc').execute();
   }
 
@@ -72,6 +78,8 @@ export class HqService {
           id: adminId, tenant_id: id, name: data.adminName, username: data.adminMobile,
           password_hash: await bcrypt.hash(data.adminPassword, 12), mobile: data.adminMobile, role: 'tenant_admin', status: 'active', last_login_at: null,
         }).execute();
+        await trx.insertInto('credit_wallets').values({ tenant_id: id, balance: 100, reserved: 0 }).execute();
+        await trx.insertInto('credit_ledger').values({ id: randomUUID(), tenant_id: id, change: 100, kind: 'grant', reference: 'signup-grant', note: '新租户开通赠送' }).execute();
         await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'tenant.create', target_type: 'tenant', target_id: id, detail: { name: data.name, adminMobile: data.adminMobile }, ip_address: ipAddress }).execute();
         return { ...tenant, admin: { name: data.adminName, mobile: data.adminMobile } };
       });
@@ -129,6 +137,35 @@ export class HqService {
   }
 
   plans() { return this.db.selectFrom('subscription_plans').selectAll().orderBy('price_cents').execute(); }
+
+  async tenantCredits(tenantId: string) {
+    await expireCreditHolds(this.db, tenantId);
+    const wallet = await this.db.selectFrom('credit_wallets').selectAll().where('tenant_id', '=', tenantId).executeTakeFirst();
+    if (!wallet) throw new DomainError('租户额度账户不存在', HttpStatus.NOT_FOUND);
+    const entries = await this.db.selectFrom('credit_ledger').selectAll().where('tenant_id', '=', tenantId).orderBy('created_at', 'desc').limit(100).execute();
+    return { balance: wallet.balance, reserved: wallet.reserved, available: wallet.balance - wallet.reserved, entries };
+  }
+
+  async grantCredits(actor: HqPrincipal, tenantId: string, input: unknown, ipAddress: string | null) {
+    if (!['super_admin', 'finance'].includes(actor.role)) throw new DomainError('无权调整租户额度', HttpStatus.FORBIDDEN);
+    const data = CreditGrantSchema.parse(input);
+    try {
+      return await this.db.transaction().execute(async (trx) => {
+        const inserted = await trx.insertInto('credit_ledger').values({ id: randomUUID(), tenant_id: tenantId, change: data.amount, kind: 'manual', reference: `manual:${data.reference}`, note: data.reason }).onConflict((oc) => oc.columns(['tenant_id', 'reference']).doNothing()).returning('id').executeTakeFirst();
+        if (!inserted) {
+          const current = await trx.selectFrom('credit_wallets').selectAll().where('tenant_id', '=', tenantId).executeTakeFirstOrThrow();
+          return { balance: current.balance, reserved: current.reserved, available: current.balance - current.reserved, duplicate: true };
+        }
+        const wallet = await trx.updateTable('credit_wallets').set((eb) => ({ balance: eb('balance', '+', data.amount), updated_at: new Date() })).where('tenant_id', '=', tenantId).returningAll().executeTakeFirst();
+        if (!wallet) throw new DomainError('租户额度账户不存在', HttpStatus.NOT_FOUND);
+        await trx.insertInto('platform_audit_logs').values({ id: randomUUID(), platform_user_id: actor.id, action: 'credits.grant', target_type: 'tenant', target_id: tenantId, detail: { amount: data.amount, reason: data.reason, reference: data.reference }, ip_address: ipAddress }).execute();
+        return { balance: wallet.balance, reserved: wallet.reserved, available: wallet.balance - wallet.reserved };
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code === '23503') throw new DomainError('租户不存在', HttpStatus.NOT_FOUND);
+      throw error;
+    }
+  }
 
   auditLogs() {
     return this.db.selectFrom('platform_audit_logs').innerJoin('platform_users', 'platform_users.id', 'platform_audit_logs.platform_user_id')

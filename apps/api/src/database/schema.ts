@@ -54,10 +54,17 @@ export interface SubscriptionPlanTable {
   id: string; code: string; name: string; price_cents: number; event_limit: number | null;
   attendee_limit: number | null; status: 'active' | 'disabled'; created_at: GeneratedTimestamp;
 }
+export interface CreditWalletTable { tenant_id: string; balance: number; reserved: number; updated_at: GeneratedTimestamp; }
+export interface CreditLedgerTable {
+  id: string; tenant_id: string; change: number; kind: 'grant' | 'purchase' | 'manual' | 'issue' | 'return' | 'refund';
+  reference: string; note: string; created_at: GeneratedTimestamp;
+}
+export interface CreditHoldTable { order_id: string; tenant_id: string; status: 'reserved' | 'consumed' | 'released'; expires_at: Timestamp; created_at: GeneratedTimestamp; }
 
 export interface Database {
   tenants: TenantTable; users: UserTable; password_reset_codes: PasswordResetCodeTable; events: EventTable; ticket_types: TicketTypeTable;
   registrations: RegistrationTable; orders: OrderTable; tickets: TicketTable; checkin_points: CheckinPointTable; checkin_point_staff: CheckinPointStaffTable;
   checkin_records: CheckinRecordTable; outbox_events: OutboxEventTable; idempotency_keys: IdempotencyKeyTable;
   platform_users: PlatformUserTable; platform_audit_logs: PlatformAuditLogTable; subscription_plans: SubscriptionPlanTable;
+  credit_wallets: CreditWalletTable; credit_ledger: CreditLedgerTable; credit_holds: CreditHoldTable;
 }

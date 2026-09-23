@@ -403,8 +403,51 @@ table td small {
   font-size: 15px;
 }
 
+.sidebar-tenant-name { display: grid; gap: 4px; min-width: 0; padding: 12px 7px 10px; }
+.sidebar-tenant-name small { color: #71877c; font-size: 10px; }
+.sidebar-tenant-name strong { color: #fff; font-size: 13px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.shell > aside > .profile { border-top: 1px solid #31463d; }
+
+.events-page-header { gap: 24px; }
+.events-header-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.events-header-actions > .primary { flex: none; white-space: nowrap; }
+.event-credit-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 9px 12px;
+  border: 1px solid #dce8e1;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.event-credit-banner > div:first-child { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+.event-credit-banner span { font-size: 14px; font-weight: 700; }
+.event-credit-banner strong { color: #185c43; font-size: 19px; line-height: 1.2; white-space: nowrap; }
+.event-credit-expected { padding-left: 12px; border-left: 1px solid #dce8e1; color: #63766c; }
+.event-credit-expected strong { color: #17251f; }
+.event-credit-action { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; text-align: right; }
+.event-credit-action a,.event-credit-action button { color: inherit; font-size: 13px; font-weight: 800; }
+.event-credit-action a:hover { text-decoration: underline; }
+.event-credit-action .event-credit-contact { padding: 7px 10px; border: 1px solid #185c43; border-radius: 7px; background: transparent; color: #185c43; white-space: nowrap; }
+.event-credit-action .event-credit-contact:hover { background: rgb(24 92 67 / 8%); }
+.event-credit-banner.low { border-color: #f2cb70; background: #fff8e8; color: #744600; }
+.event-credit-banner.critical { border-color: #f2aaa2; background: #fff0ec; color: #9a261b; }
+.event-credit-banner.low strong,.event-credit-banner.critical strong { color: inherit; }
+@media(max-width:900px) { .events-page-header { align-items: flex-start; flex-wrap: wrap; } .events-header-actions { justify-content: flex-start; } }
+@media(max-width:600px) { .events-header-actions { width: 100%; } .event-credit-action { text-align: left; } .event-credit-expected { padding-left: 0; border-left: 0; } }
+
 .event-cover {
   align-items: flex-start;
+}
+
+.event-cover .event-date-range {
+  align-self: flex-end;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: right;
 }
 
 .event-cover .badge {
@@ -429,12 +472,21 @@ table td small {
   color: #246d2d;
 }
 
+.event-cover .badge.upcoming {
+  border-color: #d7e4f7;
+  background: #edf4ff;
+  color: #315b94;
+}
+
 .event-cover .badge.ended,
 .event-cover .badge.cancelled {
   border-color: #d7dfdb;
   background: #eef2ef;
   color: #526159;
 }
+
+.event-links { margin-top: 18px; }
+.event-links > .registration-link:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 
 .form-builder-head {
   display: flex;

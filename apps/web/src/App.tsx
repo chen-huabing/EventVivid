@@ -28,7 +28,7 @@ function Home() {
   return <Shell><header><p className="eyebrow">EVENT OPERATIONS, REIMAGINED</p><h1>每一场相聚，<br/><em>都鲜活发生。</em></h1><p className="lede">从发布、报名和收款，到出票与现场验签，EventVivid 让活动团队在一套系统里完成全流程运营。</p></header>
     <section className="portal-grid">
       {[
-        {to:'/hq',title:'总部后台',desc:'管理租户、套餐、渠道和平台健康度',no:'01'}, {to:'/organizer',title:'活动管理平台',desc:'创建活动、配置票种、查看报名与交易',no:'02'},
+        {to:'/hq',title:'总部后台',desc:'管理租户、电子票额度、渠道和平台健康度',no:'01'}, {to:'/organizer',title:'活动管理平台',desc:'创建活动、配置票种、查看报名与交易',no:'02'},
         {to:'/e/demo-event',title:'参会人报名页',desc:'移动优先的报名、支付与电子票体验',no:'03'}, {to:'/checkin',title:'工作人员验签',desc:'快速核验、重复拦截与现场统计',no:'04'},
       ].map(({to,title,desc,no}) => <Link className="portal-card" to={to} key={to}><b>{no}</b><h2>{title}</h2><p>{desc}</p><span>进入 →</span></Link>)}
     </section>

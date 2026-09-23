@@ -134,6 +134,28 @@ INSERT INTO tenants(id, name) VALUES ('00000000-0000-4000-8000-000000000001', 'E
 INSERT INTO users(id, tenant_id, name, mobile, role) VALUES (
   '00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000001', '演示管理员', '13800000000', 'tenant_admin'
 ) ON CONFLICT (id) DO NOTHING;
+CREATE TABLE IF NOT EXISTS credit_wallets (
+  tenant_id uuid PRIMARY KEY REFERENCES tenants(id), balance integer NOT NULL DEFAULT 0 CHECK (balance >= 0),
+  reserved integer NOT NULL DEFAULT 0 CHECK (reserved >= 0 AND reserved <= balance), updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS credit_ledger (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), tenant_id uuid NOT NULL REFERENCES tenants(id),
+  change integer NOT NULL CHECK (change <> 0), kind text NOT NULL CHECK (kind IN ('grant','purchase','manual','issue','return','refund')),
+  reference text NOT NULL, note text NOT NULL DEFAULT '', created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (tenant_id, reference)
+);
+CREATE INDEX IF NOT EXISTS credit_ledger_tenant_created_idx ON credit_ledger(tenant_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS credit_holds (
+  order_id uuid PRIMARY KEY REFERENCES orders(id), tenant_id uuid NOT NULL REFERENCES tenants(id),
+  status text NOT NULL CHECK (status IN ('reserved','consumed','released')), expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS credit_holds_expiry_idx ON credit_holds(tenant_id, expires_at) WHERE status = 'reserved';
+-- 既有租户首次迁移时获赠 100 张；历史出票不追溯扣费。重复迁移不会再次发放。
+INSERT INTO credit_wallets(tenant_id, balance) SELECT id, 100 FROM tenants ON CONFLICT (tenant_id) DO NOTHING;
+INSERT INTO credit_ledger(tenant_id, change, kind, reference, note)
+SELECT id, 100, 'grant', 'signup-grant', '注册赠送；历史租户首次迁移补发' FROM tenants
+ON CONFLICT (tenant_id, reference) DO NOTHING;
 `;
 
 async function migrate() {

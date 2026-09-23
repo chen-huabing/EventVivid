@@ -22,5 +22,7 @@ export class HqController {
   @Get('tenants/:tenantId/admins') tenantAdmins(@Param('tenantId') tenantId: string) { return this.hq.tenantAdmins(tenantId); }
   @Patch('tenants/:tenantId/admins/:adminId') updateTenantAdmin(@CurrentHqUser() user: HqPrincipal, @Param('tenantId') tenantId: string, @Param('adminId') adminId: string, @Body() body: unknown, @Ip() ip: string) { return this.hq.updateTenantAdmin(user, tenantId, adminId, body, ip); }
   @Get('plans') plans() { return this.hq.plans(); }
+  @Get('tenants/:tenantId/credits') tenantCredits(@Param('tenantId') tenantId: string) { return this.hq.tenantCredits(tenantId); }
+  @Post('tenants/:tenantId/credits') grantCredits(@CurrentHqUser() user: HqPrincipal, @Param('tenantId') tenantId: string, @Body() body: unknown, @Ip() ip: string) { return this.hq.grantCredits(user, tenantId, body, ip); }
   @Get('audit-logs') auditLogs() { return this.hq.auditLogs(); }
 }

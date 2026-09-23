@@ -30,6 +30,18 @@
 .modal-edit { padding: 8px 15px; font-size: 13px; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
+.tenant-picker { position: relative; width: min(420px, 100%); }
+.tenant-picker > label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
+.tenant-picker-field { position: relative; }
+.tenant-picker-field input { width: 100%; padding-right: 38px; background: #fff; }
+.tenant-picker-chevron { position: absolute; right: 15px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: #667085; pointer-events: none; }
+.tenant-picker-options { position: absolute; z-index: 10; top: calc(100% + 5px); left: 0; right: 0; max-height: 290px; overflow-y: auto; border: 1px solid #d0d5dd; border-radius: 9px; background: #fff; box-shadow: 0 12px 28px #1018281f; }
+.tenant-picker-options button { display: grid; gap: 3px; width: 100%; padding: 10px 12px; border: 0; border-radius: 0; background: #fff; text-align: left; }
+.tenant-picker-options button:hover,.tenant-picker-options button.active { background: #eef4ff; }
+.tenant-picker-options button[aria-selected="true"] b { color: #3448d8; }
+.tenant-picker-options small { overflow: hidden; color: #667085; font-size: 11px; text-overflow: ellipsis; }
+.tenant-picker-empty { padding: 14px; color: #667085; font-size: 13px; }
+
 @media (max-width: 650px) {
   .quick-expiry { flex-wrap: wrap; }
   .modal { padding: 20px; }
