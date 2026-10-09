@@ -60,11 +60,20 @@ export interface CreditLedgerTable {
   reference: string; note: string; created_at: GeneratedTimestamp;
 }
 export interface CreditHoldTable { order_id: string; tenant_id: string; status: 'reserved' | 'consumed' | 'released'; expires_at: Timestamp; created_at: GeneratedTimestamp; }
-
 export interface Database {
+  credit_purchase_orders: CreditPurchaseOrderTable;
+  credit_payment_notifications: {id:string;order_id:string;received_at:GeneratedTimestamp};
+  credit_payment_oauth_states: {state_hash:string;order_id:string;expires_at:Timestamp;created_at:GeneratedTimestamp};
   tenants: TenantTable; users: UserTable; password_reset_codes: PasswordResetCodeTable; events: EventTable; ticket_types: TicketTypeTable;
   registrations: RegistrationTable; orders: OrderTable; tickets: TicketTable; checkin_points: CheckinPointTable; checkin_point_staff: CheckinPointStaffTable;
   checkin_records: CheckinRecordTable; outbox_events: OutboxEventTable; idempotency_keys: IdempotencyKeyTable;
   platform_users: PlatformUserTable; platform_audit_logs: PlatformAuditLogTable; subscription_plans: SubscriptionPlanTable;
   credit_wallets: CreditWalletTable; credit_ledger: CreditLedgerTable; credit_holds: CreditHoldTable;
+}
+
+export interface CreditPurchaseOrderTable {
+ id:string;tenant_id:string;created_by:string;idempotency_key:string;pack_count:number;pack_name:string;amount_cents:number;
+ status:'pending'|'processing'|'paid'|'failed'|'expired';req_date:string;req_seq_id:string;huifu_id:string;app_id:string;
+ hf_seq_id:string|null;pay_info:unknown|null;payment_started_at:Timestamp|null;last_queried_at:Timestamp|null;
+ next_query_at:GeneratedTimestamp;paid_at:Timestamp|null;expires_at:Timestamp;created_at:GeneratedTimestamp;
 }

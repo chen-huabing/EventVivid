@@ -35,3 +35,35 @@
 .support-content p{max-width:360px;margin:0;color:#526159;font-size:14px;line-height:1.7}
 .support-content img{display:block;width:min(100%,290px);height:auto;border:1px solid #e0e5e2;border-radius:12px;background:#fff}
 .support-content small{color:#718078;font-size:12px}
+
+.credit-pack-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:18px}
+.credit-pack-card{display:flex;flex-direction:column;align-items:flex-start;gap:15px;min-height:280px;padding:28px}
+.credit-pack-card h2{margin:0;font-size:34px;line-height:1.2}
+.credit-pack-card h2 small{font-size:15px;font-weight:500;color:#718078}
+.credit-pack-card>strong{font-size:26px;color:#185c43}
+.credit-pack-card>p{margin:0;color:#718078;font-size:14px;line-height:1.6}
+.credit-pack-card>.link-button{margin-top:auto;justify-content:center;min-width:110px}
+.credit-order-card{max-width:740px;padding:30px}
+.credit-order-card h2{margin:10px 0 24px;font-size:26px}
+.credit-order-card dl{margin:0}
+.credit-order-card dl>div{display:flex;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #e8ece9}
+.credit-order-card dt{color:#718078}
+.credit-order-card dd{margin:0;font-weight:700;text-align:right}
+.credit-order-card .credit-order-total{align-items:center;border-bottom:0}
+.credit-order-total dd{font-size:28px;color:#185c43}
+.credit-order-note{padding:14px 16px;border-radius:9px;background:#f3f5f4;color:#526159;font-size:13px;line-height:1.6}
+.credit-order-card>.link-button{justify-content:center;min-width:140px;margin-top:8px}
+.credit-payment-card{max-width:740px;padding:44px;text-align:center}
+.credit-payment-icon{display:grid;place-items:center;width:58px;height:58px;margin:auto;border-radius:50%;background:#edf8f1;color:#185c43;font-size:30px}
+.credit-payment-card h2{margin:20px 0 12px}
+.credit-payment-card p{color:#526159;line-height:1.7}
+.credit-payment-card>.primary{margin-top:12px}
+@media(max-width:900px){.credit-pack-grid{grid-template-columns:1fr}.credit-pack-card{min-height:0}}
+.credit-pay-amount{display:block;margin:18px 0;font-size:36px;color:#185c43}
+.credit-pay-qr{display:block;width:280px;max-width:100%;height:auto;margin:24px auto;border:1px solid #e0e5e2;border-radius:12px}
+.credit-order-id{font-size:12px;overflow-wrap:anywhere}
+.credit-mobile-checkout{min-height:100dvh;display:grid;align-items:start;justify-items:center;background:#edf3ef;padding:24px 16px}
+.credit-mobile-checkout>.card{width:100%;max-width:460px;padding:32px 24px;text-align:center}
+.credit-mobile-checkout button{display:block;width:100%;margin:14px 0}
+.credit-mobile-checkout h1{font-size:28px}.credit-mobile-checkout h2{font-size:20px}
+.credit-mobile-checkout .alert{text-align:left;overflow-wrap:anywhere}

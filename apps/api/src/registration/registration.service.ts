@@ -24,6 +24,7 @@ export class RegistrationService {
     const data = RegisterSchema.parse(input);
     const event = await this.db.selectFrom('events').selectAll().where('slug', '=', slug).where('status', '=', 'published').executeTakeFirst();
     if (!event) throw new DomainError('活动不存在或不可报名', HttpStatus.NOT_FOUND);
+    if (new Date(event.ends_at).getTime() <= Date.now()) throw new DomainError('活动已结束，不能继续报名', HttpStatus.CONFLICT);
     const parsedForm = RegistrationFormSchema.safeParse({ fields: event.registration_form });
     if (!parsedForm.success) throw new DomainError('活动报名表配置无效，请联系主办方');
     const answers: Record<string, string> = { ...data.formData, name: data.attendeeName, mobile: data.attendeeMobile, email: data.attendeeEmail || '' };
@@ -41,10 +42,12 @@ export class RegistrationService {
       const wallet = await trx.updateTable('credit_wallets').set((eb) => ({ reserved: eb('reserved', '+', 1), updated_at: new Date() }))
         .where('tenant_id', '=', event.tenant_id).whereRef('balance', '>', 'reserved').returning('tenant_id').executeTakeFirst();
       if (!wallet) throw new DomainError('电子票额度不足，暂时无法报名，请联系主办方', HttpStatus.CONFLICT);
+      const now = new Date();
       const ticketType = await trx.updateTable('ticket_types').set((eb) => ({ sold_count: eb('sold_count', '+', 1) }))
         .where('id', '=', data.ticketTypeId).where('event_id', '=', event.id).where('tenant_id', '=', event.tenant_id)
+        .where('sale_starts_at', '<=', now).where('sale_ends_at', '>=', now)
         .whereRef('sold_count', '<', 'capacity').returningAll().executeTakeFirst();
-      if (!ticketType) throw new DomainError('票券已售罄或票种无效', HttpStatus.CONFLICT);
+      if (!ticketType) throw new DomainError('票券已售罄、未开售或已停售', HttpStatus.CONFLICT);
       const registrationId = randomUUID();
       const orderId = randomUUID();
       const orderNo = `EV${Date.now()}${randomBytes(3).toString('hex').toUpperCase()}`;
@@ -57,7 +60,9 @@ export class RegistrationService {
         id: orderId, tenant_id: event.tenant_id, event_id: event.id, registration_id: registrationId,
         order_no: orderNo, amount_cents: ticketType.price_cents, status: 'pending', paid_at: null,
       }).returningAll().executeTakeFirstOrThrow();
-      await trx.insertInto('credit_holds').values({ order_id: orderId, tenant_id: event.tenant_id, status: 'reserved', expires_at: new Date(Date.now() + 15 * 60_000) }).execute();
+      const holdUntil = Math.min(Date.now() + 15 * 60_000, new Date(event.ends_at).getTime(), new Date(ticketType.sale_ends_at).getTime());
+      if (ticketType.price_cents > 0 && holdUntil - Date.now() < 60_000) throw new DomainError('距离付费票停止报名不足 1 分钟，无法创建支付订单', HttpStatus.CONFLICT);
+      await trx.insertInto('credit_holds').values({ order_id: orderId, tenant_id: event.tenant_id, status: 'reserved', expires_at: new Date(holdUntil) }).execute();
       const response = { registrationId, orderId, orderNo, amountCents: order.amount_cents, status: order.status };
       await trx.insertInto('idempotency_keys').values({ tenant_id: event.tenant_id, scope: 'registration', key: idempotencyKey, response }).execute();
       return response;
@@ -78,7 +83,7 @@ export class RegistrationService {
       const existing = await trx.selectFrom('tickets').selectAll().where('registration_id', '=', order.registration_id).executeTakeFirst();
       if (order.status === 'paid' && existing) return { order, ticket: existing };
       if (order.status !== 'pending') throw new DomainError('订单状态不允许支付');
-      if (order.amount_cents > 0 && process.env.NODE_ENV === 'production') throw new DomainError('付费票尚未接入真实支付回调，暂不能确认支付', HttpStatus.SERVICE_UNAVAILABLE);
+      if (order.amount_cents > 0) throw new DomainError('付费订单尚未支付，不能出票', HttpStatus.CONFLICT);
       let hold = await trx.selectFrom('credit_holds').selectAll().where('order_id', '=', order.id).executeTakeFirst();
       // 兼容升级前创建、尚未确认支付的订单。
       if (!hold) {

@@ -1,0 +1,14 @@
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+const cwd = fileURLToPath(new URL('../tools/huifu-sdk/', import.meta.url));
+const go = process.env.GO_BINARY || (process.platform === 'win32' && existsSync('C:/Program Files/Go/bin/go.exe') ? 'C:/Program Files/Go/bin/go.exe' : 'go');
+const testing = process.argv.includes('--test');
+mkdirSync(join(cwd, 'dist'), { recursive: true });
+const args = testing ? ['test', './...'] : ['build', '-trimpath', '-o', join('dist', process.platform === 'win32' ? 'huifu-sdk.exe' : 'huifu-sdk'), '.'];
+const cache = fileURLToPath(new URL('../node_modules/.cache/', import.meta.url));
+const env = {...process.env,GOPATH:process.env.GOPATH || join(cache,'go'),GOCACHE:process.env.GOCACHE || join(cache,'go-build'),GOMODCACHE:process.env.GOMODCACHE || join(cache,'go-mod')};
+const result = spawnSync(go, args, { cwd, stdio: 'inherit', env });
+if (result.error) console.error('Go 1.23+ is required to build the Huifu SDK bridge.');
+process.exit(result.status ?? 1);

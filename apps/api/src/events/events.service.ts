@@ -219,9 +219,9 @@ export class EventsService {
 
   async publish(context: RequestContext, eventId: string) {
     const event = await this.ownedEvent(context, eventId);
-    const ticket = await this.db.selectFrom('ticket_types').select('id')
-      .where('tenant_id', '=', context.tenantId).where('event_id', '=', eventId).executeTakeFirst();
-    if (!ticket) throw new DomainError('至少配置一个票种后才能发布');
+    const tickets = await this.db.selectFrom('ticket_types').select(['id', 'price_cents'])
+      .where('tenant_id', '=', context.tenantId).where('event_id', '=', eventId).execute();
+    if (!tickets.length) throw new DomainError('至少配置一个票种后才能发布');
     if (event.status === 'cancelled') throw new DomainError('已取消活动不能发布');
     return this.db.transaction().execute(async (trx) => {
       const published = await trx.updateTable('events').set({ status: 'published', updated_at: new Date() })

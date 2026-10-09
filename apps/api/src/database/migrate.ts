@@ -2,6 +2,7 @@ import './load-env';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
+import { creditPaymentsSql } from './credit-payments.sql';
 
 const sql = `
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -162,6 +163,7 @@ async function migrate() {
   const client = new Client({ connectionString: process.env.DATABASE_URL ?? 'postgres://eventvivid:eventvivid@localhost:5432/eventvivid' });
   await client.connect();
   await client.query(sql);
+  await client.query(creditPaymentsSql);
   const username = process.env.HQ_ADMIN_USERNAME ?? 'admin';
   const password = process.env.HQ_ADMIN_PASSWORD;
   if (!password) throw new Error('HQ_ADMIN_PASSWORD is required for the initial platform administrator');

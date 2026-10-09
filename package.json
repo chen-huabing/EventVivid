@@ -4,6 +4,8 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
+    "build:huifu": "node scripts/huifu-sdk.mjs",
+    "test:huifu": "node scripts/huifu-sdk.mjs --test",
     "dev": "npm run dev --workspace @eventvivid/api",
     "dev:api": "npm run dev --workspace @eventvivid/api",
     "dev:web": "npm run dev --workspace @eventvivid/web",
